@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:p="http://www.springframework.org/schema/p"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<!-- <context:component-scan base-package="com.duzon.common.config" /> -->
+    
+    <context:component-scan base-package="com.lucy.scatter">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+    
+	<bean id="encryptorConfig" class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+		<property name="algorithm" value="PBEWithMD5AndDES" />
+		<property name="passwordEnvName" value="APP_ENCRYPTION_PASSWORD" />
+	</bean>
+     
+	<bean id="encryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+		<property name="config" ref="encryptorConfig" />
+		<property name="password" value="tmzkdlvmffotvha" />
+	</bean>
+	
+    <!-- 환경설정 기본정보를 globals.properties 에서 참조하도록 propertyConfigurer 설정 -->
+    <!-- xml 설정에서 사용. 자바에서는 따로 loader 구현해야함 -->
+    <bean id="propertyConfigurer" class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+        <constructor-arg ref="encryptor" />
+        <property name="locations">
+            <list>
+                <value>classpath:/conf/jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
+          
+    <!-- Exception 발생시 후처리용 별도작업을 위해 실행환경의  AntPathMatcher 를 활용하도록 설정 -->
+    <bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+    <!-- Exception 발생시 후처리용 별도작업을 위해 실행환경의  DefaultTraceHandler 를 활용하도록 설정 egovframework.rte.fdl.cmmn.trace.handler.DefaultTraceHandler -->
+    
+    <!-- MULTIPART RESOLVERS -->
+    <!-- regular spring resolver -->    
+    <bean id="spring.RegularCommonsMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- <property name="maxUploadSize" value="100000000" /> -->
+        <!-- <property name="maxInMemorySize" value="100000000" /> -->
+    </bean>
+   
+    <alias name="spring.RegularCommonsMultipartResolver" alias="multipartResolver" />
+    
+</beans>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.ScatterMapper">
+	
+	<select id = "selectScatterHistoryList" parameterType = "java.util.HashMap" resultType ="java.util.HashMap">
+		select 
+			scatter_history_no
+			, total_cost
+			, scatter_cost 
+			, scatter_timestamp
+			, receive_user_id
+			, receive_timestamp
+		from t_scatter_history
+		where scatter_token = #{token}
+		and scatter_user_id = #{user_id} ::int8
+		and scatter_timestamp <![CDATA[ < ]]> now() + interval '7 days'
+		order by scatter_timestamp, receive_timestamp desc
+	</select>
+  	
+  	<insert id = "scatterMoney" parameterType = "java.util.HashMap">
+		insert into t_scatter_history
+		(
+			scatter_token, room_id, total_cost, scatter_cost, scatter_user_id, scatter_timestamp
+		)
+		values
+		<foreach collection="moneyNoArr" item="item" index="index" open="" close="" separator=",">
+		( 
+			#{token}, #{room_id}, #{total_cost}, #{item}, #{user_id}::int8, now()
+		)
+		</foreach>
+  	</insert>
+  	
+  	<select id = "selectUnReceivedMoney" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+  		select
+  			scatter_history_no, scatter_cost
+  		from t_scatter_history
+  		where scatter_token = #{token}
+  		and room_id = #{room_id}
+  		and receive_user_id is null
+  		and receive_timestamp is null
+  		and scatter_user_id != #{user_id} ::int8
+  		and now() - scatter_timestamp <![CDATA[<]]> interval '10 minute'
+  		and not exists (
+			select 1 from t_scatter_history 
+			where scatter_token = #{token}
+			and room_id = #{room_id}
+			and receive_user_id = #{user_id}::int8 
+		)
+  		limit 1
+  		for update
+  	</select>
+  	
+  	<update id = "receiveMoney" parameterType="java.util.HashMap">
+  		update t_scatter_history 
+  		set 
+  			receive_user_id = #{user_id}::int8, 
+  			receive_timestamp = now()
+  		where scatter_history_no = #{scatter_history_no}
+  	</update>
+  	
+</mapper>
