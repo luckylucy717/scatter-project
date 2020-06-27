@@ -75,11 +75,16 @@ public class ScatterController {
 		param.put("moneyNoArr", moneyNoArr);
 
 		//토큰 발급
-		param.put("token", generate());
-		Object obj = scatterService.scatterMoney(param); 
+		String token = generate();
+		param.put("token", token);
+		int resultCnt = scatterService.scatterMoney(param); 
+		
+		HashMap<String, Object> responseData = new HashMap<>(); 
+		responseData.put("token", token);
+		responseData.put("resultCnt", resultCnt);
 		
 		Response res = new Response();
-		res.setResponseData(obj);
+		res.setResponseData(responseData);
 		
 		return new ResponseEntity<Response>(res, HttpStatus.OK);
 	}
