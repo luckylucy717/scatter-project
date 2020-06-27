@@ -16,7 +16,7 @@
 		where scatter_token = #{token}
 		and scatter_user_id = #{user_id} ::int8
 		and scatter_timestamp <![CDATA[ < ]]> now() + interval '7 days'
-		order by scatter_timestamp, receive_timestamp desc
+		order by scatter_timestamp, receive_timestamp desc nulls last 
 	</select>
   	
   	<insert id = "scatterMoney" parameterType = "java.util.HashMap">
